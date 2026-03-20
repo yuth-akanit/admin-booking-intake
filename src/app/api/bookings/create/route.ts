@@ -201,7 +201,7 @@ export async function POST(request: Request) {
     return NextResponse.json(
       {
         status: 'unknown_commit_state',
-        message: 'Internal Server Error',
+        message: `Internal Server Error: ${err instanceof Error ? err.message : String(err)}`,
       },
       { status: 500 }
     );
