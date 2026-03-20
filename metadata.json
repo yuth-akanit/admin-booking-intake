@@ -1,0 +1,5 @@
+{
+  "name": "Admin Booking Intake App",
+  "description": "An internal MVP for HVAC operations to handle manual booking intake, normalization, and validation before queueing into the production system.",
+  "requestFramePermissions": []
+}
