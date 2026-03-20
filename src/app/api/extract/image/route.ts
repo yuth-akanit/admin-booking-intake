@@ -37,15 +37,15 @@ Here is the exact JSON structure and rules:
   "customer_name": "string (extract real name/nickname if present, ignore generic greetings)",
   "phone": "string (extract phone number, digits only or with dashes/spaces, e.g. 081-123-4567)",
   "address_full": "string (extract the full address details provided, including soi, road, subdistrict, region)",
-  "area": "string (try to determine the general area like บางนา, บางพลี, สมุทรปราการ, เทพารักษ์, ลาดกระบัง from the address)",
+  "area": "string (MUST BE one of: bangna, bangphli, samutprakan, thepharak, latkrabang. Map from address if possible)",
   "machine_count": "number (extract integer of how many AC units need service e.g. 'ล้าง2ตัว' = 2, default is 1 if unspecified but service requested)",
   "job_type": "string (either 'cleaning' or 'repair' depending on context. ล้าง=cleaning, ซ่อม=repair)"
 }
 
 Rules:
-- If a value is missing, return an empty string "" instead of null.
-- machine_count must be a string denoting a number, e.g., "1" or "2".
-- ONLY output JSON. DO NOT output any explanation.`
+Rule: "machine_count" must be a number (integer), e.g. 1, 2. (Not a string like "1").
+Rule: "job_type" must be exactly "cleaning" or "repair".
+
         },
         {
           role: "user",
