@@ -2,15 +2,10 @@ import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { BookingCreateSchema } from '../../../../lib/validation';
 import { BookingCreatePayload } from '../../../../types/booking';
+import getConfig from 'next/config';
 
 /**
  * SERVER SIDE GATEWAY TO SUPABASE
- * Flow:
- *   1. Validate payload
- *   2. Lookup or create customer by phone
- *   3. Generate sequential job_number via DB RPC
- *   4. Pre-flight idempotency check
- *   5. Insert to public.bookings
  */
 export async function POST(request: Request) {
   try {
@@ -29,11 +24,32 @@ export async function POST(request: Request) {
       );
     }
 
-    // 2. INITIALIZE SUPABASE ADMIN
-    const supabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL || '',
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || process.env.SUPABASE_ANON_KEY || ''
-    );
+    // 2. INITIALIZE SUPABASE - try every possible source
+    const { serverRuntimeConfig } = getConfig() || { serverRuntimeConfig: {} };
+    
+    const supabaseUrl = 
+      serverRuntimeConfig?.SUPABASE_URL ||
+      process.env.SUPABASE_URL || 
+      process.env.NEXT_PUBLIC_SUPABASE_URL || 
+      '';
+    
+    const supabaseKey = 
+      serverRuntimeConfig?.SUPABASE_KEY ||
+      process.env.SUPABASE_ANON_KEY || 
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 
+      '';
+
+    if (!supabaseUrl || !supabaseKey) {
+      return NextResponse.json(
+        {
+          status: 'unknown_commit_state',
+          message: `Missing Supabase config. URL=${supabaseUrl ? 'SET' : 'EMPTY'}, KEY=${supabaseKey ? 'SET' : 'EMPTY'}. Check docker-compose.yml environment vars.`,
+        },
+        { status: 500 }
+      );
+    }
+
+    const supabase = createClient(supabaseUrl, supabaseKey);
 
     // 3. IDEMPOTENCY PRE-FLIGHT (CHECK BEFORE INSERT)
     const { data: existing, error: existingError } = await supabase
@@ -68,10 +84,8 @@ export async function POST(request: Request) {
     let resolvedCustomerId: string | null = null;
 
     if (phone) {
-      // Strip leading zero for phone_digits lookup (Thai format)
       const phoneDigits = phone.replace(/^0/, '');
 
-      // Try phone_digits first (the canonical field)
       const { data: customerByDigits } = await supabase
         .from('customers')
         .select('id')
@@ -81,7 +95,6 @@ export async function POST(request: Request) {
       if (customerByDigits) {
         resolvedCustomerId = customerByDigits.id;
       } else {
-        // Fallback: try phone field with original format
         const { data: customerByPhone } = await supabase
           .from('customers')
           .select('id')
@@ -102,7 +115,7 @@ export async function POST(request: Request) {
         name: parseResult.data.customer_name || null,
         full_name: parseResult.data.customer_name || null,
         address_text: parseResult.data.address_full || null,
-        source: 'walkin', // admin-created
+        source: 'walkin',
       };
 
       const { data: created, error: createError } = await supabase
@@ -156,7 +169,6 @@ export async function POST(request: Request) {
       .single();
 
     if (error) {
-      // 2-STEP RECOVERY: Check if conflict is indeed the idempotency key
       const isUniqueViolation = error.code === '23505';
 
       if (isUniqueViolation) {
@@ -182,7 +194,7 @@ export async function POST(request: Request) {
       return NextResponse.json(
         {
           status: 'unknown_commit_state',
-          message: error.message,
+          message: `DB Error: ${error.message} (code: ${error.code})`,
         },
         { status: 500 }
       );
