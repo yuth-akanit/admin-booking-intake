@@ -31,8 +31,8 @@ export async function POST(request: Request) {
 
     // 2. INITIALIZE SUPABASE ADMIN
     const supabase = createClient(
-      process.env.SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!
+      process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL || '',
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || process.env.SUPABASE_ANON_KEY || ''
     );
 
     // 3. IDEMPOTENCY PRE-FLIGHT (CHECK BEFORE INSERT)
