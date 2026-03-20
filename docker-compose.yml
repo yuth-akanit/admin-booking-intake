@@ -1,0 +1,23 @@
+services:
+  admin-booking-intake:
+    build:
+      context: .
+      args:
+        SUPABASE_URL: "https://paavpbzosxhggtfqvwcy.supabase.co"
+        SUPABASE_ANON_KEY: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBhYXZwYnpvc3hoZ2d0ZnF2d2N5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njc5NzE4MTYsImV4cCI6MjA4MzU0NzgxNn0.2tcqvH0LhI3fOTsHvdGDtH1AZfE-9cLoKkGFwevfSL0"
+    container_name: admin-booking-intake
+    restart: always
+    environment:
+      - NODE_ENV=production
+      - SUPABASE_URL=https://paavpbzosxhggtfqvwcy.supabase.co
+      - SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBhYXZwYnpvc3hoZ2d0ZnF2d2N5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njc5NzE4MTYsImV4cCI6MjA4MzU0NzgxNn0.2tcqvH0LhI3fOTsHvdGDtH1AZfE-9cLoKkGFwevfSL0
+      - NEXT_PUBLIC_SUPABASE_URL=https://paavpbzosxhggtfqvwcy.supabase.co
+      - NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBhYXZwYnpvc3hoZ2d0ZnF2d2N5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njc5NzE4MTYsImV4cCI6MjA4MzU0NzgxNn0.2tcqvH0LhI3fOTsHvdGDtH1AZfE-9cLoKkGFwevfSL0
+    ports:
+      - "3004:3000"
+    networks:
+      - web
+
+networks:
+  web:
+    external: true
